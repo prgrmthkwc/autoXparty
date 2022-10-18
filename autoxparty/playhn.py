@@ -15,11 +15,14 @@ COURSE_SCORE = 'course_score'
 COURSE_PROGRESS = 'course_progress'
 
 LOADING_TIMEOUT = 10  # 10 sec
-USER_INPUT_TIMEOUT = 180  # 3 min
+LOADING_SHORT = 3  # 10 sec
+USER_INPUT_TIMEOUT = 60  # 1 min
+
+PLAYING_TICK = 10
 
 
 class Play:
-    def __init__(self, webdrv, test: unittest.TestCase) -> None:
+    def __init__(self, webdrv, test: unittest.TestCase, username) -> None:
         self.webdrv_main = webdrv
         self.winhandle_main = webdrv.current_window_handle
 
@@ -28,39 +31,38 @@ class Play:
         self.specified_socre_is_not_enough = True
         self.course_list = []
 
+        self.username = username
+
     def make_sure_login(self):
         webdrv = self.webdrv_main
 
-        WebDriverWait(webdrv, LOADING_TIMEOUT).until(
+        WebDriverWait(webdrv, USER_INPUT_TIMEOUT).until(
             EC.presence_of_element_located((By.CLASS_NAME, "tm-user-info-new"))
         )
 
-        # get login information:
-        user_info_div = webdrv.find_element(By.CLASS_NAME, "tm-user-info-new")
-        if len(user_info_div.find_elements(By.XPATH, 
-                    ".//div[contains(@class, 'user_info_name')]")) > 0:
-            print(user_info_div.find_element(By.XPATH, 
-                    ".//div[contains(@class, 'user_info_name')]").text)
-        else:
-            print("failed to find it user_info_name.")
+        def userinfo_is_ready(driver):
+            user_info_name_div = driver.find_element(By.XPATH,
+                    "//div[contains(@class, 'user_info_name')]")
+            return self.username in user_info_name_div.text
+
+        WebDriverWait(webdrv, USER_INPUT_TIMEOUT).until(userinfo_is_ready)
+
 
         # get user's score:
-        usrinfo_box_div = user_info_div.find_element(
-            By.CLASS_NAME, "user_info_box")
-        ul = usrinfo_box_div.find_element(By.CLASS_NAME, "info_list")
+        ul = webdrv.find_element(By.CLASS_NAME, "info_list")
         score = -1
         for li in ul.find_elements(By.TAG_NAME, "li"):
             txt = li.text
             if txt.startswith("获得总学时"):
-                score = int(txt[txt.index('（')+1: txt.index('）')])
+                score = int(float(txt[txt.index('（')+1: txt.index('）')]))
                 self.score = score
             elif txt.startswith("指定课程学时"):
                 s = txt[txt.index('：')+1:]
                 ss = [t.strip() for t in s.split('|')]
-                tt = list(map(int, ss))
-                print("must get score is :", tt[1])
-                print("==>> currently what you got is :", tt[0])
-                self.specified_socre_is_not_enough = tt[0] < tt[1]
+                print("must get score is :", ss[1])
+                print("==>> currently what you got is :", ss[0])
+                self.specified_socre_is_not_enough = float(
+                    ss[0]) < float(ss[1])
             print(txt)
 
         if score > 52:
@@ -74,7 +76,7 @@ class Play:
 
         return True
 
-    def prepare_courses(self):
+    def prepare_specify_courses(self):
         webdrv = self.webdrv_main
 
         my_center = webdrv.find_element(By.CLASS_NAME, "my_center_container")
@@ -83,16 +85,52 @@ class Play:
             print("clicked")
             WebDriverWait(webdrv, LOADING_TIMEOUT).until(
                 EC.presence_of_element_located((By.XPATH,
-                                                "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 2']"))
+                        "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 2']"))
             )
+            # a workaround to click twice to get data in li.
+            time.sleep(LOADING_TIMEOUT)
+            my_center.find_element(By.PARTIAL_LINK_TEXT, '指定课程').click()
+            time.sleep(LOADING_TIMEOUT)
+            startgame = WebDriverWait(webdrv, LOADING_TIMEOUT).until(
+                lambda d: d.find_element(By.PARTIAL_LINK_TEXT, "开始学习"))
 
             spec_courses_div = webdrv.find_element(By.XPATH,
-                                                   "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 2']")
-            ul = spec_courses_div.find_element(
-                By.CLASS_NAME, "my_center_course_list")
+                    "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 2']")
+            while True:
+                ul = spec_courses_div.find_element(
+                    By.CLASS_NAME, "my_center_course_list")
+                if len(ul.find_elements(By.TAG_NAME, "li")) > 0:
+                    print("get specified course list!")
+                    break
+                else:
+                    print("specified course list NOOOOOOOOOOT ready!")
+
+            ul = webdrv.find_element(By.CLASS_NAME, "my_center_course_list")
+            print("found course list number:", len(
+                ul.find_elements(By.TAG_NAME, "li")))
+            print("ul source:\n", ul.get_attribute('innerText'))
+
+            for li in ul.find_elements(By.TAG_NAME, "li"):
+                print(li.text)
             self.get_unscored_course_list(ul)
 
+    def prepare_courses(self):
+        time.sleep(LOADING_SHORT)
+        webdrv = self.webdrv_main
+
+        my_center = webdrv.find_element(By.CLASS_NAME, "my_center_container")
+        tab1 = WebDriverWait(webdrv, LOADING_TIMEOUT).until(lambda d: d.find_element(By.XPATH,
+                "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 1']"))
+        ul = tab1.find_element(By.CLASS_NAME, "my_center_course_list")
+        if len(ul.find_elements(By.TAG_NAME, "li")) > 0:
+            print("get specified course list!")
+        else:
+            print("specified course list NOOOOOOOOOOT ready!")
+
+        self.get_unscored_course_list(ul)
+
     def get_unscored_course_list(self, ul):
+
         for li in ul.find_elements(By.TAG_NAME, "li"):
             d = dict()
             d[ELEMENT] = li
@@ -109,38 +147,84 @@ class Play:
             if d[COURSE_PROGRESS] < 100:
                 self.course_list.append(d)
 
-        # for d in self.course_list:
-        #     print(d)
+        for d in self.course_list:
+            print(d)
 
     def start_game(self):
         webdrv = self.webdrv_main
 
         self.test.assertTrue(len(self.course_list) > 0)
 
-        for li in self.course_list:
+        for item in self.course_list:
             self.make_sure_start_from_mainpage()
 
-            li.get(ELEMENT).find_element(By.PARTIAL_LINK_TEXT, '开始学习').click()
+            li = item.get(ELEMENT)
+            ActionChains(webdrv).move_to_element(li).perform()  # scroll to the item
+
+            time.sleep(LOADING_SHORT)
+
+            li.find_element(By.PARTIAL_LINK_TEXT, '开始学习').click()
             webdrv.switch_to.window(webdrv.window_handles[1])
-            WebDriverWait(webdrv, LOADING_TIMEOUT).until(
-                EC.presence_of_element_located((By.XPATH,
-                                                "//span[@class='glyphicon glyphicon-play-circle']"))
+            WebDriverWait(webdrv, LOADING_TIMEOUT).until(EC.presence_of_element_located((By.XPATH,
+                    "//span[@class='glyphicon glyphicon-play-circle']"))
             )
             webdrv.find_element(By.PARTIAL_LINK_TEXT, '点击播放').click()
             webdrv.switch_to.window(webdrv.window_handles[2])
 
             self.drag_and_drop_slider_to_startgame()
+            if item.get(COURSE_TYPE) == '三分屏':
+                self.get_iframes_to_play()
+            elif item.get(COURSE_TYPE) == '单视频':
+                self.just_play_a_video()
 
-            self.get_iframes_to_play()
+    def just_play_a_video(self):
+        webdrv = self.webdrv_main
+
+        controlbar = WebDriverWait(webdrv, LOADING_TIMEOUT).until(lambda d:
+                d.find_element(By.ID, "myplayer_controlbar"))
+
+        time.sleep(LOADING_SHORT)
+
+        btn = webdrv.find_element(By.ID, "myplayer_display_button_play")
+        ActionChains(webdrv).move_to_element(btn).perform()
+
+        def elapsed_time_is_ready(driver):
+            elapsed = driver.find_element(By.ID, "myplayer_controlbar_elapsed")
+            if ':' not in elapsed.text:
+                print("faild to get elapse time:", elapsed.text)
+                return False
+
+            elapsed_time = helpers.time2secs(elapsed.text)
+            return elapsed_time > 0
+
+        WebDriverWait(webdrv, LOADING_TIMEOUT).until(elapsed_time_is_ready)
+
+        duration = controlbar.find_element(By.ID, "myplayer_controlbar_duration")
+        dur_time_secs = helpers.time2secs(duration.text)
+
+        elapsed_time = 0
+        while elapsed_time/dur_time_secs < 0.82:
+            ActionChains(webdrv).move_to_element(btn).perform()
+            elapsed = controlbar.find_element(
+                By.ID, "myplayer_controlbar_elapsed")
+            if ':' not in elapsed.text:
+                continue
+            elapsed_time = helpers.time2secs(elapsed.text)
+
+            time.sleep(PLAYING_TICK)
 
     def get_iframes_to_play(self):
         webdrv = self.webdrv_main
-        WebDriverWait(webdrv, LOADING_TIMEOUT).until(
-            EC.presence_of_element_located((By.XPATH,
-                                            "//iframe[@frameborder='0']"))
-        )
 
+        WebDriverWait(webdrv, USER_INPUT_TIMEOUT).until(
+            EC.presence_of_element_located(
+                (By.XPATH, "//iframe[@frameborder='0']"))
+        )
         webdrv.switch_to.frame(0)
+
+        WebDriverWait(webdrv, USER_INPUT_TIMEOUT).until(
+            EC.presence_of_element_located((By.ID, "iframe"))
+        )
         webdrv.switch_to.frame("iframe")  # get to the nested iframe
 
         WebDriverWait(webdrv, LOADING_TIMEOUT).until(
@@ -151,7 +235,6 @@ class Play:
         WebDriverWait(webdrv, LOADING_TIMEOUT).until(
             EC.presence_of_element_located((By.CLASS_NAME, "control-section"))
         )
-
         playbtn_div = webdrv.find_element(By.CLASS_NAME, "control-section")
 
         dur_time_secs = -1
@@ -162,7 +245,7 @@ class Play:
             dur_time_secs = helpers.time2secs(duration)
             print("the course's total time is :", dur_time_secs)
 
-            time.sleep(1)
+            time.sleep(LOADING_SHORT)
 
         cur_time_secs = 0
         while cur_time_secs/dur_time_secs < 0.82:
@@ -179,7 +262,7 @@ class Play:
                     cur_time_secs = helpers.time2secs(current)
 
             print("=====> the current playing time is :", cur_time_secs)
-            time.sleep(10)
+            time.sleep(PLAYING_TICK)
 
         # when game done. need to switch back to default page.
         webdrv.switch_to.default_content()
@@ -205,8 +288,7 @@ class Play:
             if ques_ul.is_displayed():  # shown on the screen
                 print("questions shown....")
                 li = ques_ul.find_element(By.CLASS_NAME, "dis_block")
-                test_title = li.find_element(
-                    By.XPATH, ".//h4//span[@class='test-title']").text.strip()
+                test_title = li.find_element(By.XPATH, ".//h4//span[@class='test-title']").text.strip()
                 print("to answer :", test_title)
                 if test_title == "【多选题】":
                     self.answer_checkbox_questions(li)
@@ -222,16 +304,14 @@ class Play:
         # <li> ... <span class="error">回答不正确，正确答案:B</span> </li>
         #####
         tips = self.webdrv_main.execute_script("return arguments[0].innerHTML;",
-                                               li.find_element(By.XPATH, './/span[@class="error"]'))
+                li.find_element(By.XPATH, './/span[@class="error"]'))
         t = tips.strip()
         key = t[t.rfind(':')+1:]  # "B" etc.
 
         print("get answer: %s and submit it" % key)
 
-        li.find_element(
-            By.XPATH, ".//*//input[@type='radio' and @value='%s']" % key[0]).click()
-        li.find_element(
-            By.XPATH, ".//*//input[@type='button' and @value='提交']").click()
+        li.find_element(By.XPATH, ".//*//input[@type='radio' and @value='%s']" % key[0]).click()
+        li.find_element(By.XPATH, ".//*//input[@type='button' and @value='提交']").click()
 
     def answer_checkbox_questions(self, li):
         print("li.text = ", li.text)
@@ -241,31 +321,31 @@ class Play:
         # <li> ... <span class="error">回答不正确，正确答案:ABCD</span> </li>
         #####
         tips = self.webdrv_main.execute_script("return arguments[0].innerHTML;",
-                                               li.find_element(By.XPATH, './/span[@class="error"]'))
+                li.find_element(By.XPATH, './/span[@class="error"]'))
         t = tips.strip()
-        print("error tips in span is : ", t)
+        # print("error tips in span is : ", t)
 
         keys = t[t.rfind(':')+1:]  # "ABCD" etc.
         print("keys:", keys)
 
         for k in keys:
             print("check ...", k)
-            li.find_element(
-                By.XPATH, ".//*//input[@type='checkbox' and @value='%s']" % k).click()
+            li.find_element(By.XPATH, ".//*//input[@type='checkbox' and @value='%s']" % k).click()
 
         print("get answer: %s and submit it" % keys)
-        li.find_element(
-            By.XPATH, ".//*//input[@type='button' and @value='提交']").click()
+        li.find_element(By.XPATH, ".//*//input[@type='button' and @value='提交']").click()
 
     def drag_and_drop_slider_to_startgame(self):
         webdrv = self.webdrv_main
 
         WebDriverWait(webdrv, LOADING_TIMEOUT).until(
-            EC.presence_of_element_located((By.ID, "drag")))
+                EC.presence_of_element_located((By.ID, "drag")))
         drag_div = webdrv.find_element(By.ID, "drag")
-        slider = drag_div.find_element(By.CLASS_NAME, "handler handler_bg")
+
+        slider = drag_div.find_element(By.CSS_SELECTOR, ".handler")
+
         action = ActionChains(webdrv)
-        action.drag_and_drop_by_offset(slider, 260, 0).perform()
+        action.drag_and_drop_by_offset(slider, 300, 0).perform()
 
     def make_sure_start_from_mainpage(self):
         webdrv = self.webdrv_main

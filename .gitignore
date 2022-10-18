@@ -128,5 +128,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# game gate
-party.website.url
+# game config
+xparty.cfg.json
