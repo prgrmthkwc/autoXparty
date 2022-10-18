@@ -2,10 +2,12 @@ import time
 import unittest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.actions.action_builder import ActionBuilder
 
 from . import helpers
 
@@ -16,7 +18,7 @@ COURSE_PROGRESS = 'course_progress'
 
 LOADING_TIMEOUT = 10  # 10 sec
 LOADING_SHORT = 3  # 10 sec
-USER_INPUT_TIMEOUT = 60  # 1 min
+USER_INPUT_TIMEOUT = 180  # 3 min
 
 PLAYING_TICK = 10
 
@@ -177,6 +179,57 @@ class Play:
             elif item.get(COURSE_TYPE) == '单视频':
                 self.just_play_a_video()
 
+    def make_sure_playbar_displayed(self):
+        webdrv = self.webdrv_main
+
+        # view = webdrv.get_window_size()
+        # w = view['width']
+        # h = view['height']
+        ### we need viewport size :
+        w = int(webdrv.execute_script("return document.documentElement.clientWidth"))
+        h = int(webdrv.execute_script("return document.documentElement.clientHeight"))
+
+        for s in range(5, 300, 5):
+            action = ActionBuilder(webdrv)
+            action.pointer_action.move_to_location(w/2, h-s)
+            action.perform()
+            btn = self.get_playbar_element()
+            if btn is not None:
+                print("move_to_location(%d, %d) worked!" % (w/2, h-s))
+                return btn
+
+        print("failed to get playbar elements !!!!!!!!!!!!!!")
+        return None
+
+    def get_playbar_element(self):
+        webdrv = self.webdrv_main
+
+        try:
+            btn = WebDriverWait(webdrv, 1).until(lambda d:
+                    d.find_element(By.ID, "myplayer_display_button_play"))
+        except TimeoutException as ex:
+            print("failed to get it by ID: myplayer_display_button_play'")
+        else:
+            return btn
+
+        try:
+            btn = WebDriverWait(webdrv, 1).until(lambda d:
+                    d.find_element(By.CSS_SELECTOR, ".jwplay button"))
+        except TimeoutException as ex:
+            print("failed to get it by CSS_SELECTOR: .jwplay button'")
+        else:
+            return btn
+
+        # try:
+        #     btn = WebDriverWait(webdrv, LOADING_SHORT).until(lambda d:
+        #         d.find_element(By.ID, "myplayer_controlbar_duration"))
+        # except TimeoutException as ex:
+        #     print("failed to get it by CSS_SELECTOR: .jwplay button'")
+        # else:
+        #     return btn
+
+        return None
+
     def just_play_a_video(self):
         webdrv = self.webdrv_main
 
@@ -185,7 +238,7 @@ class Play:
 
         time.sleep(LOADING_SHORT)
 
-        btn = webdrv.find_element(By.ID, "myplayer_display_button_play")
+        btn = self.make_sure_playbar_displayed()
         ActionChains(webdrv).move_to_element(btn).perform()
 
         def elapsed_time_is_ready(driver):

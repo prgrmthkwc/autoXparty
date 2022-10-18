@@ -18,17 +18,17 @@ class XpartyOnline(unittest.TestCase):
         self.url = d['url']
 
         chrome_opts = Options()
-        chrome_opts.add_argument(
-            "--user-data-dir=" + self.username + "-data-dir")
+        chrome_opts.add_argument("--user-data-dir=" + self.username + "-data-dir")
         chrome_opts.add_argument("--mute-audio")
-        chrome_opts.add_argument("--headless")
-        chrome_opts.add_argument("--disable-gpu")
-        chrome_opts.add_argument("--window-size=1920,1200")
-        chrome_opts.add_argument("--disable-extensions")
-        chrome_opts.add_argument("--no-sandbox")
+        # chrome_opts.add_argument("--headless")
+        # chrome_opts.add_argument("--disable-gpu")
+        # chrome_opts.add_argument("--window-size=1920,1200")
+        # chrome_opts.add_argument("--disable-extensions")
+        # chrome_opts.add_argument("--no-sandbox")
+        # chrome_opts.add_argument("--remote-debugging-port=9222")
 
         self.webdrv = webdriver.Chrome(options=chrome_opts,
-                                       service=ChromeService(ChromeDriverManager().install()))
+                service=ChromeService(ChromeDriverManager().install()))
 
         return super().setUp()
 
