@@ -17,6 +17,9 @@ COURSE_TYPE = 'course_type'
 COURSE_SCORE = 'course_score'
 COURSE_PROGRESS = 'course_progress'
 
+COURSE_TYPE_3BLOCK = "三分屏"
+COURSE_TYPE_1VIDEO = "单视频"
+
 WAIT_LD_TIMEOUT = 10  # 10 sec
 WAIT_LD_SHORT = 3  # 3 sec
 WAIT_USER_INPUT_TIMEOUT = 180  # 3 min
@@ -42,6 +45,8 @@ CDITEMS = [
     },
 ]
 
+## 80% will get the course core, we watching more
+MAX_PERCENT = 0.82
 
 class Play:
     def __init__(self, webdrv, test: unittest.TestCase, username) -> None:
@@ -92,11 +97,11 @@ class Play:
         if score > 52:
             print("Congraduation VVVVV : you passed!")
         elif score == -1:
-            print("Errrrrrooorr, you need check HTML code, failed to get the score.")
+            print("Erroooooooooor, you need check HTML code, failed to get the score.")
             return False
         else:
             print("\n\n ==========>>>>>\n Currently you just win socre: " + str(score))
-            print(" Keeeeeeeeeeeep going.")
+            print("Keeeeeeeeeeeep going.\n\n")
 
         return True
 
@@ -106,7 +111,7 @@ class Play:
         my_center = webdrv.find_element(By.CLASS_NAME, "my_center_container")
         my_center.find_element(By.PARTIAL_LINK_TEXT, d.get(KEY_LINKTEXT)).click()
         time.sleep(WAIT_LD_SHORT)
-        print("switch to 指定课程==>")
+        print("switch to ==>", d.get(KEY_LINKTEXT)))
 
         WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(
             EC.presence_of_element_located((By.XPATH, d.get(KEY_TABXPATH)))
@@ -130,8 +135,8 @@ class Play:
 
     def prepare_specify_courses(self):
         self.make_sure_start_from_mainpage()
-        time.sleep(WAIT_LD_SHORT)
         if self.specified_socre_is_not_enough:
+            time.sleep(WAIT_LD_SHORT)
             ul = self.make_sure_course_list_data_is_ready(CDITEMS[IDX_SPEC])
             self.get_unscored_course_list(ul)
 
@@ -189,9 +194,9 @@ class Play:
             webdrv.switch_to.window(webdrv.window_handles[2])
 
             self.drag_and_drop_slider_to_startgame()
-            if item.get(COURSE_TYPE) == '三分屏':
+            if item.get(COURSE_TYPE) == COURSE_TYPE_3BLOCK:
                 self.get_iframes_to_play()
-            elif item.get(COURSE_TYPE) == '单视频':
+            elif item.get(COURSE_TYPE) == COURSE_TYPE_1VIDEO:
                 self.just_play_a_video()
 
     def make_sure_playbar_displayed(self):
@@ -276,23 +281,25 @@ class Play:
         duration = controlbar.find_element(By.ID, "myplayer_controlbar_duration")
         dur_time_secs = helpers.time2secs(duration.text)
 
-        elapsed_time = 0
-        while elapsed_time/dur_time_secs < 0.82:
+        self.monitor_playing_game(controlbar, COURSE_TYPE_1VIDEO, dur_time_secs)
 
-            self.close_msgbox_if_pop()
+        # elapsed_time = 0
+        # while elapsed_time/dur_time_secs < 0.82:
 
-            # ActionChains(webdrv).move_to_element(btn).perform()
-            elapsed = controlbar.find_element(By.ID, "myplayer_controlbar_elapsed")
-            etime_text = webdrv.execute_script("return arguments[0].textContent", elapsed)
-            if ':' not in etime_text:
-                print("etime_text :", etime_text)
-                continue
-            elapsed_time = helpers.time2secs(etime_text)
+        #     self.close_msgbox_if_pop()
 
-            progress = int(elapsed_time/dur_time_secs * 10)
-            print("progress: [%s]" % (progress*'#' + (10-progress)*'.'))
+        #     # ActionChains(webdrv).move_to_element(btn).perform()
+        #     elapsed = controlbar.find_element(By.ID, "myplayer_controlbar_elapsed")
+        #     etime_text = webdrv.execute_script("return arguments[0].textContent", elapsed)
+        #     if ':' not in etime_text:
+        #         print("etime_text :", etime_text)
+        #         continue
+        #     elapsed_time = helpers.time2secs(etime_text)
 
-            time.sleep(WAIT_PLAYING_TICK)
+        #     progress = int(elapsed_time/dur_time_secs * 10)
+        #     # print("progress: [%s]" % (progress*'#' + (10-progress)*'.'))
+
+        #     time.sleep(WAIT_PLAYING_TICK)
 
     def get_iframes_to_play(self):
         webdrv = self.webdrv_main
@@ -328,25 +335,34 @@ class Play:
 
             time.sleep(WAIT_LD_SHORT)
 
-        cur_time_secs = 0
-        while cur_time_secs/dur_time_secs < 0.82:
+        self.monitor_playing_game(playbtn_div, COURSE_TYPE_3BLOCK, dur_time_secs)
+        webdrv.switch_to.default_content()
 
+    def monitor_playing_game(self, playbar, course_type, total_secs):
+        webdrv = self.webdrv_main
+
+        elapsed_secs = 0
+        while elapsed_secs/total_secs < MAX_PERCENT:
             self.close_msgbox_if_pop()
 
-            self.answer_questions_if_pop()
+            if course_type == COURSE_TYPE_3BLOCK:
+                self.answer_questions_if_pop()
+                spans = playbar.find_elements(By.XPATH, ".//span[@id='current_time']")
+                if spans:
+                    span_curtime = spans[0]
+                    if span_curtime.is_displayed():
+                        elapsed_secs = helpers.time2secs(span_curtime.text)
+            elif course_type == COURSE_TYPE_1VIDEO:
+                elapsed = playbar.find_element(By.ID, "myplayer_controlbar_elapsed")
+                etime_text = webdrv.execute_script("return arguments[0].textContent", elapsed)
+                if ':' not in etime_text:
+                    print("etime_text :", etime_text)
+                    continue
+                elapsed_secs = helpers.time2secs(etime_text)
 
-            if len(playbtn_div.find_elements(By.XPATH, ".//span[@id='current_time']")) > 0:
-                playing = playbtn_div.find_element(
-                    By.XPATH, ".//span[@id='current_time']")
-                if playing.is_displayed():
-                    current = playing.text
-                    cur_time_secs = helpers.time2secs(current)
+            helpers.update_progress(elapsed_secs/total_secs)
 
-            print("=====> the current playing time is :", cur_time_secs)
             time.sleep(WAIT_PLAYING_TICK)
-
-        # when game done. need to switch back to default page.
-        webdrv.switch_to.default_content()
 
     def close_msgbox_if_pop(self):
         webdrv = self.webdrv_main
@@ -450,3 +466,6 @@ class Play:
                     time.sleep(WAIT_CLASS_OVER)
 
             webdrv.switch_to.window(self.winhandle_main)
+            time.sleep(WAIT_LD_TIMEOUT)
+            # update value: specified_socre_is_not_enough
+            self.make_sure_login()
