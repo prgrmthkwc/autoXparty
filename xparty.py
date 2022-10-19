@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import platform
 import unittest
 
 from selenium import webdriver
@@ -11,22 +12,31 @@ from webdriver_manager.chrome import ChromeDriverManager
 from autoxparty import helpers
 from autoxparty.playhn import Play
 
+USERNAME = 'username'
+PASSWORD = "password"
+GATE_URL = "url"
 
 class XpartyOnline(unittest.TestCase):
 
     def setUp(self) -> None:
 
         d = helpers.get_configs('xparty.cfg.json')
-        self.username = d['username']
-        self.url = d['url']
+        if platform.system() != 'Windows':
+            if USERNAME in d : # the dict has the key
+                self.username = d[USERNAME]
+            else:
+                self.username = "tmp"
+        self.assertTrue(GATE_URL in d, msg="You MUST specify the 'url' value in 'xparty.cfg.json' file!")
+        self.url = d[GATE_URL]
 
         chrome_opts = Options()
-        chrome_opts.add_argument("--user-data-dir=" + self.username + "-data-dir")
+        if platform.system() != 'Windows':
+            chrome_opts.add_argument("--user-data-dir=" + self.username + "-data-dir")
         chrome_opts.add_argument("--mute-audio")
+        chrome_opts.add_argument("--disable-gpu")
+        chrome_opts.add_argument("--disable-extensions")
         # chrome_opts.add_argument("--headless")
-        # chrome_opts.add_argument("--disable-gpu")
         # chrome_opts.add_argument("--window-size=1920,1200")
-        # chrome_opts.add_argument("--disable-extensions")
         # chrome_opts.add_argument("--no-sandbox")
         # chrome_opts.add_argument("--remote-debugging-port=9222")
 

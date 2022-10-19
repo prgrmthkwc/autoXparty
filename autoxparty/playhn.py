@@ -370,7 +370,7 @@ class Play:
         def close_msgbox(msgbox):
             if msgbox.is_displayed():  # shown on the screen
                 btn = msgbox.find_element(By.TAG_NAME, "button")
-                print("To dismiss message box ==>>", btn.text)
+                print("\n...To dismiss message box ==>>", btn.text)
                 btn.click()
 
         ## for 三分屏
