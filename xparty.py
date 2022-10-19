@@ -12,19 +12,40 @@ from webdriver_manager.chrome import ChromeDriverManager
 from autoxparty import helpers
 from autoxparty.playhn import Play
 
-USERNAME = 'username'
-PASSWORD = "password"
-GATE_URL = "url"
+CFG_USERNAME = 'username'
+CFG_PASSWORD = "password"
+CFG_GATE_URL = "url"
+CFG_TARGET_SCORE = "score"
+
+DEFAULT_TARGET_SCORE = 52
+
+VERSION_AUTOXPARTY = "1.0"
+RELEASE_DATE = "2022/10/19"
+COPYRIGHT_INFO = "Copyright(c) prgrmthkwc(PTWC) & 编程不想"
+
 
 class XpartyOnline(unittest.TestCase):
 
     def setUp(self) -> None:
 
+        print("\n\n")
+        print("autoXparty version:", VERSION_AUTOXPARTY)
+        print("release date:", RELEASE_DATE)
+        print("Copyright info:\n", COPYRIGHT_INFO)
+        print("\n\n")
+
         d = helpers.get_configs('xparty.cfg.json')
-        self.assertTrue(USERNAME in d, msg="You MUST specify the 'username' value in 'xparty.cfg.json' file!")
-        self.username = d[USERNAME]
-        self.assertTrue(GATE_URL in d, msg="You MUST specify the 'url' value in 'xparty.cfg.json' file!")
-        self.url = d[GATE_URL]
+        self.assertTrue(CFG_USERNAME in d, msg="You MUST specify the 'username' value in 'xparty.cfg.json' file!")
+        self.username = d[CFG_USERNAME]
+        self.assertTrue(CFG_GATE_URL in d, msg="You MUST specify the 'url' value in 'xparty.cfg.json' file!")
+        self.url = d[CFG_GATE_URL]
+
+        self.target_score = DEFAULT_TARGET_SCORE
+        if CFG_TARGET_SCORE in d:
+            self.target_score = d[CFG_TARGET_SCORE]
+        self.password = ""
+        if CFG_PASSWORD in d:
+            self.password = d[CFG_PASSWORD]
 
         chrome_opts = Options()
         if platform.system() != 'Windows':
@@ -49,7 +70,9 @@ class XpartyOnline(unittest.TestCase):
     def test_startXparty(self):
         webdrv = self.webdrv
         webdrv.get(self.url)
-        play = Play(webdrv, self, self.username)
+        play = Play(webdrv, self,
+                self.username, self.password, self.target_score)
+        play.login_game()
         self.assertTrue(play.make_sure_login())
 
         play.prepare_specify_courses()

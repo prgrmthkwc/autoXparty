@@ -15,7 +15,20 @@
 
 基于Python 3 以及 Selenium 4 以上的版本运行应该没有问题。
 
-### 安装依赖
+### 普通用户指南
+
+1. 安装Chrome浏览器（俗称`谷歌浏览器`）
+
+Windows平台，建议下载官方离线安装包： [👉 Win64 bit](https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B206B747B-D0A5-B2F9-0C1E-45DAC2AF249F%7D%26lang%3Den%26browser%3D3%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe)   或  [👉 Win32 bit](https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B206B747B-D0A5-B2F9-0C1E-45DAC2AF249F%7D%26lang%3Den%26browser%3D3%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dstable-arch_x86-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup.exe)
+
+2. 去release页面下载打包好的Windows应用程序
+
+当前为 autoXparty-0.1。下载后，直接去直接运行即可。
+
+`特别说明：` 第一次运行程序时会**自动下载需要的最新Chrome驱动包**，程序启动会显得有点慢。
+
+
+### 安装依赖（推荐程序员使用）
 
 1. 安装 `Python 3`
 
@@ -44,11 +57,7 @@ $ pip install selenium
 $ pip install webdriver-manager
 ```
 
-4. 安装Chrome浏览器（俗称`谷歌浏览器`）
-
-Windows平台，建议下载官方离线安装包： [👉 Win64 bit](https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B206B747B-D0A5-B2F9-0C1E-45DAC2AF249F%7D%26lang%3Den%26browser%3D3%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe)   或  [👉 Win32 bit](https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B206B747B-D0A5-B2F9-0C1E-45DAC2AF249F%7D%26lang%3Den%26browser%3D3%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dstable-arch_x86-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup.exe)
-
-5. 下载当前程序包
+4. 下载当前程序包
 
 点击下载： [👉 autoXparty-main.zip](https://github.com/prgrmthkwc/autoXparty/archive/refs/heads/main.zip)
 

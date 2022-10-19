@@ -20,10 +20,10 @@ COURSE_PROGRESS = 'course_progress'
 COURSE_TYPE_3BLOCK = "三分屏"
 COURSE_TYPE_1VIDEO = "单视频"
 
-WAIT_LD_TIMEOUT = 10  # 10 sec
+WAIT_LD_TIMEOUT = 10  # 6 sec
 WAIT_LD_SHORT = 3  # 3 sec
-WAIT_USER_INPUT_TIMEOUT = 180  # 3 min
-WAIT_CLASS_OVER = 5 # the suggestion is 5s (同时只能打开一门课程,请关闭之前页面,并于5秒后重试！)
+WAIT_USER_INPUT_TIMEOUT = 1800  # 30 min
+WAIT_CLASS_OVER = 5 # the suggestion is 5s
 
 WAIT_PLAYING_TICK = 10
 
@@ -49,16 +49,32 @@ CDITEMS = [
 MAX_PERCENT = 0.82
 
 class Play:
-    def __init__(self, webdrv, test: unittest.TestCase, username) -> None:
+    def __init__(self, webdrv, test: unittest.TestCase, username, password="", target_score=50) -> None:
         self.webdrv_main = webdrv
         self.winhandle_main = webdrv.current_window_handle
 
         self.test = test
         self.score = -1
-        self.specified_socre_is_not_enough = True
+        self.specified_score_is_not_enough = True
         self.course_list = []
 
         self.username = username
+        self.password = password
+        self.target_score = target_score
+
+    def login_game(self):
+        webdrv = self.webdrv_main
+
+        WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(EC.presence_of_element_located((By.CLASS_NAME, "login")))
+        user = WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(EC.presence_of_element_located((By.ID, "txtAccount")))
+        psswd = WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(EC.presence_of_element_located((By.ID, "txtPwd")))
+
+        user.clear()
+        user.send_keys(self.username)
+
+        if self.password != "":
+            psswd.clear()
+            psswd.send_keys(self.password)
 
     def make_sure_login(self):
         webdrv = self.webdrv_main
@@ -92,7 +108,7 @@ class Play:
                 ss = [t.strip() for t in s.split('|')]
                 print("must get score is :", ss[1])
                 print("==>> currently what you got is :", ss[0])
-                self.specified_socre_is_not_enough = float(ss[0]) < float(ss[1])
+                self.specified_score_is_not_enough = float(ss[0]) < float(ss[1])
 
         if score > 52:
             print("Congraduation VVVVV : you passed!")
@@ -100,7 +116,7 @@ class Play:
             print("Erroooooooooor, you need check HTML code, failed to get the score.")
             return False
         else:
-            print("\n\n ==========>>>>>\n Currently you just win socre: " + str(score))
+            print("\n\n ==========>>>>>\n Currently you just win score: " + str(score))
             print("Keeeeeeeeeeeep going.\n\n")
 
         return True
@@ -135,7 +151,7 @@ class Play:
 
     def prepare_specify_courses(self):
         self.make_sure_start_from_mainpage()
-        if self.specified_socre_is_not_enough:
+        if self.specified_score_is_not_enough:
             time.sleep(WAIT_LD_SHORT)
             ul = self.make_sure_course_list_data_is_ready(CDITEMS[IDX_SPEC])
             self.get_unscored_course_list(ul)
@@ -467,5 +483,5 @@ class Play:
 
             webdrv.switch_to.window(self.winhandle_main)
             time.sleep(WAIT_LD_TIMEOUT)
-            # update value: specified_socre_is_not_enough
+            # update value: specified_score_is_not_enough
             self.make_sure_login()
