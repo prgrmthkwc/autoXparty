@@ -19,9 +19,17 @@
 
 1. 安装 `Python 3`
 
-特别针对 `Windows` 用户，`Mac` 与 `Linux` 系统通常自带（若系统自带的Python为2.7，也许要安装Python3）
+`Mac` 与 `Linux` 系统通常自带（若系统自带的Python为2.7，也许要安装Python3）, 以下**特别针对** `Windows` 用户：
 
 官方下载地址： https://www.python.org/downloads （当前最新版本为：3.10.8）
+
+安装后确认pip是否需要更新，并且安装packaging包。
+
+
+```bash
+$ python.exe -m pip install --upgrade pip
+$ pip install packaging
+```
 
 2. 安装 `Selenium` （当前版本 4.5.0）
 
@@ -42,9 +50,9 @@ Windows平台，建议下载官方离线安装包： [👉 Win64 bit](https://dl
 
 5. 下载当前程序包
 
-点击下载： [👉 autoXparty main.zip](https://github.com/prgrmthkwc/autoXparty/archive/refs/heads/main.zip)
+点击下载： [👉 autoXparty-main.zip](https://github.com/prgrmthkwc/autoXparty/archive/refs/heads/main.zip)
 
-将下载的 `main.zip` 解压至某目录
+将下载的 `autoXparty-main.zip` 解压至某目录
 
 
 ## 运行程序
