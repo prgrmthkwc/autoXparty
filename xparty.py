@@ -21,11 +21,8 @@ class XpartyOnline(unittest.TestCase):
     def setUp(self) -> None:
 
         d = helpers.get_configs('xparty.cfg.json')
-        if platform.system() != 'Windows':
-            if USERNAME in d : # the dict has the key
-                self.username = d[USERNAME]
-            else:
-                self.username = "tmp"
+        self.assertTrue(USERNAME in d, msg="You MUST specify the 'username' value in 'xparty.cfg.json' file!")
+        self.username = d[USERNAME]
         self.assertTrue(GATE_URL in d, msg="You MUST specify the 'url' value in 'xparty.cfg.json' file!")
         self.url = d[GATE_URL]
 
