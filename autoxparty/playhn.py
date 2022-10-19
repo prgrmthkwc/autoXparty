@@ -111,7 +111,7 @@ class Play:
         my_center = webdrv.find_element(By.CLASS_NAME, "my_center_container")
         my_center.find_element(By.PARTIAL_LINK_TEXT, d.get(KEY_LINKTEXT)).click()
         time.sleep(WAIT_LD_SHORT)
-        print("switch to ==>", d.get(KEY_LINKTEXT)))
+        print("switch to ==>", d.get(KEY_LINKTEXT))
 
         WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(
             EC.presence_of_element_located((By.XPATH, d.get(KEY_TABXPATH)))
