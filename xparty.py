@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import unittest
 
 from selenium import webdriver
@@ -41,6 +44,10 @@ class XpartyOnline(unittest.TestCase):
         webdrv.get(self.url)
         play = Play(webdrv, self, self.username)
         self.assertTrue(play.make_sure_login())
+
+        play.prepare_specify_courses()
+        play.start_game()
+
         play.prepare_courses()
         play.start_game()
 

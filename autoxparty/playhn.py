@@ -6,6 +6,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions.action_builder import ActionBuilder
 
@@ -16,11 +17,30 @@ COURSE_TYPE = 'course_type'
 COURSE_SCORE = 'course_score'
 COURSE_PROGRESS = 'course_progress'
 
-LOADING_TIMEOUT = 10  # 10 sec
-LOADING_SHORT = 3  # 10 sec
-USER_INPUT_TIMEOUT = 180  # 3 min
+WAIT_LD_TIMEOUT = 10  # 10 sec
+WAIT_LD_SHORT = 3  # 3 sec
+WAIT_USER_INPUT_TIMEOUT = 180  # 3 min
+WAIT_CLASS_OVER = 5 # the suggestion is 5s (同时只能打开一门课程,请关闭之前页面,并于5秒后重试！)
 
-PLAYING_TICK = 10
+WAIT_PLAYING_TICK = 10
+
+KEY_LINKTEXT = "lnktext"
+KEY_TABXPATH = "tabxpath"
+KEY_ULXPATH = "ulxpath"
+IDX_SPEC = 0
+IDX_LEARNING = 1
+CDITEMS = [
+    {
+        KEY_LINKTEXT : "指定课程",
+        KEY_TABXPATH : "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 2']",
+        KEY_ULXPATH : "//div[2]/ul"
+    },
+    {
+        KEY_LINKTEXT : "在学课程",
+        KEY_TABXPATH : "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 1']",
+        KEY_ULXPATH : "//div[2]/div/ul"
+    },
+]
 
 
 class Play:
@@ -38,7 +58,7 @@ class Play:
     def make_sure_login(self):
         webdrv = self.webdrv_main
 
-        WebDriverWait(webdrv, USER_INPUT_TIMEOUT).until(
+        WebDriverWait(webdrv, WAIT_USER_INPUT_TIMEOUT).until(
             EC.presence_of_element_located((By.CLASS_NAME, "tm-user-info-new"))
         )
 
@@ -47,7 +67,7 @@ class Play:
                     "//div[contains(@class, 'user_info_name')]")
             return self.username in user_info_name_div.text
 
-        WebDriverWait(webdrv, USER_INPUT_TIMEOUT).until(userinfo_is_ready)
+        WebDriverWait(webdrv, WAIT_USER_INPUT_TIMEOUT).until(userinfo_is_ready)
 
 
         # get user's score:
@@ -55,6 +75,10 @@ class Play:
         score = -1
         for li in ul.find_elements(By.TAG_NAME, "li"):
             txt = li.text
+
+            print("\nitem ==>")
+            print(txt)
+
             if txt.startswith("获得总学时"):
                 score = int(float(txt[txt.index('（')+1: txt.index('）')]))
                 self.score = score
@@ -63,9 +87,7 @@ class Play:
                 ss = [t.strip() for t in s.split('|')]
                 print("must get score is :", ss[1])
                 print("==>> currently what you got is :", ss[0])
-                self.specified_socre_is_not_enough = float(
-                    ss[0]) < float(ss[1])
-            print(txt)
+                self.specified_socre_is_not_enough = float(ss[0]) < float(ss[1])
 
         if score > 52:
             print("Congraduation VVVVV : you passed!")
@@ -78,57 +100,45 @@ class Play:
 
         return True
 
-    def prepare_specify_courses(self):
+    def make_sure_course_list_data_is_ready(self, d):
+        time.sleep(WAIT_LD_SHORT)
         webdrv = self.webdrv_main
-
         my_center = webdrv.find_element(By.CLASS_NAME, "my_center_container")
-        if self.specified_socre_is_not_enough:
-            my_center.find_element(By.PARTIAL_LINK_TEXT, '指定课程').click()
-            print("clicked")
-            WebDriverWait(webdrv, LOADING_TIMEOUT).until(
-                EC.presence_of_element_located((By.XPATH,
-                        "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 2']"))
-            )
-            # a workaround to click twice to get data in li.
-            time.sleep(LOADING_TIMEOUT)
-            my_center.find_element(By.PARTIAL_LINK_TEXT, '指定课程').click()
-            time.sleep(LOADING_TIMEOUT)
-            startgame = WebDriverWait(webdrv, LOADING_TIMEOUT).until(
-                lambda d: d.find_element(By.PARTIAL_LINK_TEXT, "开始学习"))
+        my_center.find_element(By.PARTIAL_LINK_TEXT, d.get(KEY_LINKTEXT)).click()
+        time.sleep(WAIT_LD_SHORT)
+        print("switch to 指定课程==>")
 
-            spec_courses_div = webdrv.find_element(By.XPATH,
-                    "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 2']")
-            while True:
-                ul = spec_courses_div.find_element(
-                    By.CLASS_NAME, "my_center_course_list")
-                if len(ul.find_elements(By.TAG_NAME, "li")) > 0:
-                    print("get specified course list!")
-                    break
-                else:
-                    print("specified course list NOOOOOOOOOOT ready!")
+        WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(
+            EC.presence_of_element_located((By.XPATH, d.get(KEY_TABXPATH)))
+        )
 
-            ul = webdrv.find_element(By.CLASS_NAME, "my_center_course_list")
-            print("found course list number:", len(
-                ul.find_elements(By.TAG_NAME, "li")))
-            print("ul source:\n", ul.get_attribute('innerText'))
+        ul = WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(
+                EC.presence_of_element_located((By.XPATH, d.get(KEY_ULXPATH))))
 
+        # print("TEXT in ul is:", ul.text)
+        try:
             for li in ul.find_elements(By.TAG_NAME, "li"):
-                print(li.text)
+                tmp = li.text # check if data is really ready
+        except StaleElementReferenceException:
+            ul = WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(
+                EC.presence_of_element_located((By.XPATH, d.get(KEY_ULXPATH))))
+            for li in ul.find_elements(By.TAG_NAME, "li"):
+                tmp = li.text
+                # print(tmp)
+
+        return ul
+
+    def prepare_specify_courses(self):
+        self.make_sure_start_from_mainpage()
+        time.sleep(WAIT_LD_SHORT)
+        if self.specified_socre_is_not_enough:
+            ul = self.make_sure_course_list_data_is_ready(CDITEMS[IDX_SPEC])
             self.get_unscored_course_list(ul)
 
     def prepare_courses(self):
-        time.sleep(LOADING_SHORT)
-        webdrv = self.webdrv_main
-
-        my_center = webdrv.find_element(By.CLASS_NAME, "my_center_container")
-        tab1 = WebDriverWait(webdrv, LOADING_TIMEOUT).until(lambda d: d.find_element(By.XPATH,
-                "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 1']"))
-        ul = tab1.find_element(By.CLASS_NAME, "my_center_course_list")
-        if len(ul.find_elements(By.TAG_NAME, "li")) > 0:
-            print("get specified course list!")
-        else:
-            print("specified course list NOOOOOOOOOOT ready!")
-
+        self.make_sure_start_from_mainpage()
+        time.sleep(WAIT_LD_SHORT)
+        ul = self.make_sure_course_list_data_is_ready(CDITEMS[IDX_LEARNING])
         self.get_unscored_course_list(ul)
 
     def get_unscored_course_list(self, ul):
@@ -155,19 +165,24 @@ class Play:
     def start_game(self):
         webdrv = self.webdrv_main
 
-        self.test.assertTrue(len(self.course_list) > 0)
+        if len(self.course_list) == 0:
+            print("course_list is empty. get NOTHING to play. QUIT.")
+            return
 
         for item in self.course_list:
             self.make_sure_start_from_mainpage()
 
             li = item.get(ELEMENT)
             ActionChains(webdrv).move_to_element(li).perform()  # scroll to the item
+            time.sleep(1)
 
-            time.sleep(LOADING_SHORT)
+            while not li.is_displayed():
+                print("waiting li is ready after scrolling...")
+                time.sleep(1)
 
             li.find_element(By.PARTIAL_LINK_TEXT, '开始学习').click()
             webdrv.switch_to.window(webdrv.window_handles[1])
-            WebDriverWait(webdrv, LOADING_TIMEOUT).until(EC.presence_of_element_located((By.XPATH,
+            WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(EC.presence_of_element_located((By.XPATH,
                     "//span[@class='glyphicon glyphicon-play-circle']"))
             )
             webdrv.find_element(By.PARTIAL_LINK_TEXT, '点击播放').click()
@@ -188,15 +203,21 @@ class Play:
         ### we need viewport size :
         w = int(webdrv.execute_script("return document.documentElement.clientWidth"))
         h = int(webdrv.execute_script("return document.documentElement.clientHeight"))
+        qw = int(w/4)
+        qh = int(h/4)
 
-        for s in range(5, 300, 5):
-            action = ActionBuilder(webdrv)
-            action.pointer_action.move_to_location(w/2, h-s)
-            action.perform()
-            btn = self.get_playbar_element()
-            if btn is not None:
-                print("move_to_location(%d, %d) worked!" % (w/2, h-s))
-                return btn
+        for dw in range(-qh, qh, 10): # delta w for step
+            for dh in range(5, qh, 5): # delta h for step
+                vx = w/2+dw
+                vy = h-dh
+                action = ActionBuilder(webdrv)
+                action.pointer_action.move_to_location(vx, vy)
+                action.perform()
+                print("mouse move_to_location(%d, %d)......" % (vx, vy))
+                btn = self.get_playbar_element()
+                if btn is not None:
+                    print("mouse move_to_location(%d, %d) worked!" % (vx, vy))
+                    return btn
 
         print("failed to get playbar elements !!!!!!!!!!!!!!")
         return None
@@ -205,23 +226,23 @@ class Play:
         webdrv = self.webdrv_main
 
         try:
-            btn = WebDriverWait(webdrv, 1).until(lambda d:
-                    d.find_element(By.ID, "myplayer_display_button_play"))
+            btn = WebDriverWait(webdrv, 1).until(
+                EC.visibility_of_element_located((By.ID, "myplayer_display_button_play")))
         except TimeoutException as ex:
             print("failed to get it by ID: myplayer_display_button_play'")
         else:
             return btn
 
         try:
-            btn = WebDriverWait(webdrv, 1).until(lambda d:
-                    d.find_element(By.CSS_SELECTOR, ".jwplay button"))
+            btn = WebDriverWait(webdrv, 1).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".jwplay button")))
         except TimeoutException as ex:
             print("failed to get it by CSS_SELECTOR: .jwplay button'")
         else:
             return btn
 
         # try:
-        #     btn = WebDriverWait(webdrv, LOADING_SHORT).until(lambda d:
+        #     btn = WebDriverWait(webdrv, WAIT_LD_SHORT).until(lambda d:
         #         d.find_element(By.ID, "myplayer_controlbar_duration"))
         # except TimeoutException as ex:
         #     print("failed to get it by CSS_SELECTOR: .jwplay button'")
@@ -233,10 +254,10 @@ class Play:
     def just_play_a_video(self):
         webdrv = self.webdrv_main
 
-        controlbar = WebDriverWait(webdrv, LOADING_TIMEOUT).until(lambda d:
+        controlbar = WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(lambda d:
                 d.find_element(By.ID, "myplayer_controlbar"))
 
-        time.sleep(LOADING_SHORT)
+        time.sleep(WAIT_LD_TIMEOUT)
 
         btn = self.make_sure_playbar_displayed()
         ActionChains(webdrv).move_to_element(btn).perform()
@@ -250,42 +271,49 @@ class Play:
             elapsed_time = helpers.time2secs(elapsed.text)
             return elapsed_time > 0
 
-        WebDriverWait(webdrv, LOADING_TIMEOUT).until(elapsed_time_is_ready)
+        WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(elapsed_time_is_ready)
 
         duration = controlbar.find_element(By.ID, "myplayer_controlbar_duration")
         dur_time_secs = helpers.time2secs(duration.text)
 
         elapsed_time = 0
         while elapsed_time/dur_time_secs < 0.82:
-            ActionChains(webdrv).move_to_element(btn).perform()
-            elapsed = controlbar.find_element(
-                By.ID, "myplayer_controlbar_elapsed")
-            if ':' not in elapsed.text:
-                continue
-            elapsed_time = helpers.time2secs(elapsed.text)
 
-            time.sleep(PLAYING_TICK)
+            self.close_msgbox_if_pop()
+
+            # ActionChains(webdrv).move_to_element(btn).perform()
+            elapsed = controlbar.find_element(By.ID, "myplayer_controlbar_elapsed")
+            etime_text = webdrv.execute_script("return arguments[0].textContent", elapsed)
+            if ':' not in etime_text:
+                print("etime_text :", etime_text)
+                continue
+            elapsed_time = helpers.time2secs(etime_text)
+
+            progress = int(elapsed_time/dur_time_secs * 10)
+            print("progress: [%s]" % (progress*'#' + (10-progress)*'.'))
+
+            time.sleep(WAIT_PLAYING_TICK)
 
     def get_iframes_to_play(self):
         webdrv = self.webdrv_main
 
-        WebDriverWait(webdrv, USER_INPUT_TIMEOUT).until(
+        WebDriverWait(webdrv, WAIT_USER_INPUT_TIMEOUT).until(
             EC.presence_of_element_located(
                 (By.XPATH, "//iframe[@frameborder='0']"))
         )
         webdrv.switch_to.frame(0)
 
-        WebDriverWait(webdrv, USER_INPUT_TIMEOUT).until(
+        WebDriverWait(webdrv, WAIT_USER_INPUT_TIMEOUT).until(
             EC.presence_of_element_located((By.ID, "iframe"))
         )
         webdrv.switch_to.frame("iframe")  # get to the nested iframe
 
-        WebDriverWait(webdrv, LOADING_TIMEOUT).until(
+        WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(
             EC.presence_of_element_located((By.CLASS_NAME, "study-btn"))
         )
         webdrv.find_element(By.CLASS_NAME, 'continue-study').click()
 
-        WebDriverWait(webdrv, LOADING_TIMEOUT).until(
+        WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(
             EC.presence_of_element_located((By.CLASS_NAME, "control-section"))
         )
         playbtn_div = webdrv.find_element(By.CLASS_NAME, "control-section")
@@ -298,7 +326,7 @@ class Play:
             dur_time_secs = helpers.time2secs(duration)
             print("the course's total time is :", dur_time_secs)
 
-            time.sleep(LOADING_SHORT)
+            time.sleep(WAIT_LD_SHORT)
 
         cur_time_secs = 0
         while cur_time_secs/dur_time_secs < 0.82:
@@ -315,22 +343,32 @@ class Play:
                     cur_time_secs = helpers.time2secs(current)
 
             print("=====> the current playing time is :", cur_time_secs)
-            time.sleep(PLAYING_TICK)
+            time.sleep(WAIT_PLAYING_TICK)
 
         # when game done. need to switch back to default page.
         webdrv.switch_to.default_content()
 
     def close_msgbox_if_pop(self):
         webdrv = self.webdrv_main
-        is_msgbox_present = len(webdrv.find_elements(
-            By.CLASS_NAME, "message-box")) > 0
-        if is_msgbox_present:
-            msgbox = webdrv.find_element(By.CLASS_NAME, "message-box")
+
+        def close_msgbox(msgbox):
             if msgbox.is_displayed():  # shown on the screen
                 btn = msgbox.find_element(By.TAG_NAME, "button")
                 print("To dismiss message box ==>>", btn.text)
                 btn.click()
-                # ActionChains(webdrv).click(btn).perform()
+
+        ## for 三分屏
+        is_msgbox_present = len(webdrv.find_elements(By.CLASS_NAME, "message-box")) > 0
+        if is_msgbox_present:
+            msgbox = webdrv.find_element(By.CLASS_NAME, "message-box")
+            close_msgbox(msgbox)
+
+        ## for 单视频
+        msgboxes = webdrv.find_elements(By.CLASS_NAME, "jy-msgbox")
+        if msgboxes:
+            close_msgbox(msgboxes[0])
+            
+
 
     def answer_questions_if_pop(self):
         webdrv = self.webdrv_main
@@ -349,7 +387,7 @@ class Play:
                     self.answer_radio_questions(li)
 
     def answer_radio_questions(self, li):
-        # WebDriverWait(self.webdrv_main, LOADING_TIMEOUT).until(
+        # WebDriverWait(self.webdrv_main, WAIT_LD_TIMEOUT).until(
         #     EC.presence_of_element_located((By.XPATH, ".//span[@class='error']"))
         # )
         # tips = li.find_element(By.XPATH, ".//span[@class='error']").text.strip()
@@ -391,7 +429,7 @@ class Play:
     def drag_and_drop_slider_to_startgame(self):
         webdrv = self.webdrv_main
 
-        WebDriverWait(webdrv, LOADING_TIMEOUT).until(
+        WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(
                 EC.presence_of_element_located((By.ID, "drag")))
         drag_div = webdrv.find_element(By.ID, "drag")
 
@@ -409,5 +447,6 @@ class Play:
                 if h != self.winhandle_main:  # make sure other tabs closed
                     webdrv.switch_to.window(h)
                     webdrv.close()
+                    time.sleep(WAIT_CLASS_OVER)
 
             webdrv.switch_to.window(self.winhandle_main)
