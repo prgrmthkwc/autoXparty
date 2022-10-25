@@ -131,3 +131,4 @@ dmypy.json
 # game config
 xparty.cfg.json
 *-data-dir
+.idea/

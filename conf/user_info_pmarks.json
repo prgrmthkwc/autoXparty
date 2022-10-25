@@ -1,0 +1,5 @@
+{
+    "div_user_info" : { "CLASS_NAME" : "tm-user-info-new"},
+    "div_user_info_name" : { "XPATH" : "//div[contains(@class, 'user_info_name')]"},
+    "ul_info_list" : {"CLASS_NAME" : "info_list"}
+}

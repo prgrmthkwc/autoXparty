@@ -1,14 +1,13 @@
 import time
 import unittest
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions.action_builder import ActionBuilder
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from . import helpers
 
@@ -23,7 +22,7 @@ COURSE_TYPE_1VIDEO = "单视频"
 WAIT_LD_TIMEOUT = 10  # 6 sec
 WAIT_LD_SHORT = 3  # 3 sec
 WAIT_USER_INPUT_TIMEOUT = 1800  # 30 min
-WAIT_CLASS_OVER = 5 # the suggestion is 5s
+WAIT_CLASS_OVER = 5  # the suggestion is 5s
 
 WAIT_PLAYING_TICK = 10
 
@@ -34,19 +33,20 @@ IDX_SPEC = 0
 IDX_LEARNING = 1
 CDITEMS = [
     {
-        KEY_LINKTEXT : "指定课程",
-        KEY_TABXPATH : "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 2']",
-        KEY_ULXPATH : "//div[2]/ul"
+        KEY_LINKTEXT: "指定课程",
+        KEY_TABXPATH: "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 2']",
+        KEY_ULXPATH: "//div[2]/ul"
     },
     {
-        KEY_LINKTEXT : "在学课程",
-        KEY_TABXPATH : "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 1']",
-        KEY_ULXPATH : "//div[2]/div/ul"
+        KEY_LINKTEXT: "在学课程",
+        KEY_TABXPATH: "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 1']",
+        KEY_ULXPATH: "//div[2]/div/ul"
     },
 ]
 
 ## 80% will get the course core, we watching more
 MAX_PERCENT = 0.82
+
 
 class Play:
     def __init__(self, webdrv, test: unittest.TestCase, username, password="", target_score=50) -> None:
@@ -85,11 +85,10 @@ class Play:
 
         def userinfo_is_ready(driver):
             user_info_name_div = driver.find_element(By.XPATH,
-                    "//div[contains(@class, 'user_info_name')]")
+                                                     "//div[contains(@class, 'user_info_name')]")
             return self.username in user_info_name_div.text
 
         WebDriverWait(webdrv, WAIT_USER_INPUT_TIMEOUT).until(userinfo_is_ready)
-
 
         # get user's score:
         ul = webdrv.find_element(By.CLASS_NAME, "info_list")
@@ -101,10 +100,10 @@ class Play:
             print(txt)
 
             if txt.startswith("获得总学时"):
-                score = int(float(txt[txt.index('（')+1: txt.index('）')]))
+                score = int(float(txt[txt.index('（') + 1: txt.index('）')]))
                 self.score = score
             elif txt.startswith("指定课程学时"):
-                s = txt[txt.index('：')+1:]
+                s = txt[txt.index('：') + 1:]
                 ss = [t.strip() for t in s.split('|')]
                 print("must get score is :", ss[1])
                 print("==>> currently what you got is :", ss[0])
@@ -134,12 +133,12 @@ class Play:
         )
 
         ul = WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(
-                EC.presence_of_element_located((By.XPATH, d.get(KEY_ULXPATH))))
+            EC.presence_of_element_located((By.XPATH, d.get(KEY_ULXPATH))))
 
         # print("TEXT in ul is:", ul.text)
         try:
             for li in ul.find_elements(By.TAG_NAME, "li"):
-                tmp = li.text # check if data is really ready
+                tmp = li.text  # check if data is really ready
         except StaleElementReferenceException:
             ul = WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(
                 EC.presence_of_element_located((By.XPATH, d.get(KEY_ULXPATH))))
@@ -172,9 +171,9 @@ class Play:
             for t in txt:
                 t = t.strip()
                 if t.startswith('课程类型'):
-                    d[COURSE_TYPE] = t[t.index('：')+1:]
+                    d[COURSE_TYPE] = t[t.index('：') + 1:]
                 elif t.startswith('课程学时'):
-                    d[COURSE_SCORE] = t[t.index('：')+1:]
+                    d[COURSE_SCORE] = t[t.index('：') + 1:]
                 elif t.endswith('%'):
                     d[COURSE_PROGRESS] = float(t[: -1])
             if d[COURSE_PROGRESS] < 100:
@@ -204,8 +203,8 @@ class Play:
             li.find_element(By.PARTIAL_LINK_TEXT, '开始学习').click()
             webdrv.switch_to.window(webdrv.window_handles[1])
             WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(EC.presence_of_element_located((By.XPATH,
-                    "//span[@class='glyphicon glyphicon-play-circle']"))
-            )
+                                                                                         "//span[@class='glyphicon glyphicon-play-circle']"))
+                                                         )
             webdrv.find_element(By.PARTIAL_LINK_TEXT, '点击播放').click()
             webdrv.switch_to.window(webdrv.window_handles[2])
 
@@ -224,13 +223,13 @@ class Play:
         ### we need viewport size :
         w = int(webdrv.execute_script("return document.documentElement.clientWidth"))
         h = int(webdrv.execute_script("return document.documentElement.clientHeight"))
-        qw = int(w/4)
-        qh = int(h/4)
+        qw = int(w / 4)
+        qh = int(h / 4)
 
-        for dw in range(-qh, qh, 10): # delta w for step
-            for dh in range(5, qh, 5): # delta h for step
-                vx = w/2+dw
-                vy = h-dh
+        for dw in range(-qh, qh, 10):  # delta w for step
+            for dh in range(5, qh, 5):  # delta h for step
+                vx = w / 2 + dw
+                vy = h - dh
                 action = ActionBuilder(webdrv)
                 action.pointer_action.move_to_location(vx, vy)
                 action.perform()
@@ -276,7 +275,7 @@ class Play:
         webdrv = self.webdrv_main
 
         controlbar = WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(lambda d:
-                d.find_element(By.ID, "myplayer_controlbar"))
+                                                                  d.find_element(By.ID, "myplayer_controlbar"))
 
         time.sleep(WAIT_LD_TIMEOUT)
 
@@ -358,7 +357,16 @@ class Play:
         webdrv = self.webdrv_main
 
         elapsed_secs = 0
-        while elapsed_secs/total_secs < MAX_PERCENT:
+
+        percent = MAX_PERCENT
+        is_short_video = False
+        playing_tick = WAIT_PLAYING_TICK
+        if total_secs < 3 * 60:  # 3min
+            percent = 0.95
+            is_short_video = True
+            playing_tick = 1  # 1sec
+
+        while elapsed_secs / total_secs < percent:
             self.close_msgbox_if_pop()
 
             if course_type == COURSE_TYPE_3BLOCK:
@@ -376,9 +384,12 @@ class Play:
                     continue
                 elapsed_secs = helpers.time2secs(etime_text)
 
-            helpers.update_progress(elapsed_secs/total_secs)
+            helpers.update_progress(elapsed_secs / total_secs)
 
-            time.sleep(WAIT_PLAYING_TICK)
+            time.sleep(playing_tick)
+
+        if is_short_video:  # waiting more time to make the playing finished.
+            time.sleep(10)
 
     def close_msgbox_if_pop(self):
         webdrv = self.webdrv_main
@@ -399,8 +410,6 @@ class Play:
         msgboxes = webdrv.find_elements(By.CLASS_NAME, "jy-msgbox")
         if msgboxes:
             close_msgbox(msgboxes[0])
-            
-
 
     def answer_questions_if_pop(self):
         webdrv = self.webdrv_main
@@ -427,9 +436,9 @@ class Play:
         # <li> ... <span class="error">回答不正确，正确答案:B</span> </li>
         #####
         tips = self.webdrv_main.execute_script("return arguments[0].innerHTML;",
-                li.find_element(By.XPATH, './/span[@class="error"]'))
+                                               li.find_element(By.XPATH, './/span[@class="error"]'))
         t = tips.strip()
-        key = t[t.rfind(':')+1:]  # "B" etc.
+        key = t[t.rfind(':') + 1:]  # "B" etc.
 
         print("get answer: %s and submit it" % key)
 
@@ -444,11 +453,11 @@ class Play:
         # <li> ... <span class="error">回答不正确，正确答案:ABCD</span> </li>
         #####
         tips = self.webdrv_main.execute_script("return arguments[0].innerHTML;",
-                li.find_element(By.XPATH, './/span[@class="error"]'))
+                                               li.find_element(By.XPATH, './/span[@class="error"]'))
         t = tips.strip()
         # print("error tips in span is : ", t)
 
-        keys = t[t.rfind(':')+1:]  # "ABCD" etc.
+        keys = t[t.rfind(':') + 1:]  # "ABCD" etc.
         print("keys:", keys)
 
         for k in keys:
@@ -462,7 +471,7 @@ class Play:
         webdrv = self.webdrv_main
 
         WebDriverWait(webdrv, WAIT_LD_TIMEOUT).until(
-                EC.presence_of_element_located((By.ID, "drag")))
+            EC.presence_of_element_located((By.ID, "drag")))
         drag_div = webdrv.find_element(By.ID, "drag")
 
         slider = drag_div.find_element(By.CSS_SELECTOR, ".handler")

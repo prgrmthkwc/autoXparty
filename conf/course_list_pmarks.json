@@ -1,0 +1,13 @@
+{
+    "my_center_container" : { "CLASS_NAME" : "my_center_container"},
+
+    "tab_spec_link_text" : {"PARTIAL_LINK_TEXT" :  "指定课程"},
+    "tab_spec_panel" : {"XPATH" :  "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 2']"},
+    "tab_spec_ul" : {"XPATH" :  "//div[2]/ul"},
+
+    "tab_learning_link_text" : {"PARTIAL_LINK_TEXT" :  "在学课程"},
+    "tab_learning_panel" : {"XPATH" :  "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 1']"},
+    "tab_learning_ul" : {"XPATH" :  "//div[2]/div/ul"},
+
+    "li_start_link_text" : {"PARTIAL_LINK_TEXT" :  "开始学习"}
+}

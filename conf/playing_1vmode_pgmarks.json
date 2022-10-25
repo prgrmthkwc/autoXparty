@@ -1,0 +1,13 @@
+{
+    "video_area" : {"ID" : "myplayer_display"},
+
+    "ctrlbar" : {"ID" : "myplayer_controlbar"},
+    "ctrlbar_play_btn_id" : {"ID" : "myplayer_display_button_play"},
+    "ctrlbar_play_btn_css" : {"CSS_SELECTOR" : ".jwplay button"},
+
+    "span_duration" : {"ID" :  "myplayer_controlbar_duration"},
+    "span_elapsed" : {"ID" :  "myplayer_controlbar_elapsed"},
+
+    "msgbox" : {"CLASS_NAME" : "jy-msgbox"},
+    "msgbox_ok_btn" : {"TAG_NAME" : "button"}
+}

@@ -1,0 +1,4 @@
+{
+    "play_icon" : {"XPATH" :  "//span[@class='glyphicon glyphicon-play-circle']"},
+    "play_link_text" : {"PARTIAL_LINK_TEXT" :  "点击播放"}
+}

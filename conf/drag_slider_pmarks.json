@@ -1,0 +1,4 @@
+{
+    "div_drag" : { "ID" : "drag"},
+    "div_slider" : { "CSS_SELECTOR" : ".handler"}
+}

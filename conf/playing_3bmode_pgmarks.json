@@ -1,0 +1,25 @@
+{
+    "iframe_container" : {"XPATH" : "//iframe[@frameborder='0']"},
+    "iframe_play" : {"ID" : "iframe"},
+
+    "div_continue_box" : { "CLASS_NAME" : "continue"},
+    "div_user_choice" : {"CLASS_NAME" : "user_choise"},
+
+    "btn_start_study" : { "CLASS_NAME" : "study-btn"},
+    "btn_continue_study" : {"CLASS_NAME" : "continue-study"},
+
+    "ctrl_section" : {"CLASS_NAME" : "control-section"},
+    "span_duration" : {"XPATH" :  ".//span[@id='duration']"},
+    "span_elapsed" : {"XPATH" :  ".//span[@id='current_time']"},
+
+    "msgbox" : {"CLASS_NAME" : "message-box"},
+    "msgbox_ok_btn" : {"TAG_NAME" : "button"},
+
+    "test_container" : {"ID" :  "test_container"},
+    "test_dis_block" : {"CLASS_NAME" : "dis_block"},
+    "test_title" : {"XPATH" :  ".//h4//span[@class='test-title']"},
+    "question_answer_tips" : {"XPATH" :  ".//span[@class='error']"},
+    "answer_radio_builder" : {"XPATH" :  ".//*//input[@type='radio' and @value='%s']"},
+    "answer_checkbox_builder" : {"XPATH" :  ".//*//input[@type='checkbox' and @value='%s']"},
+    "answer_submit_btn" : {"XPATH" :  ".//*//input[@type='button' and @value='提交']"}
+}

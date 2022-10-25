@@ -1,0 +1,6 @@
+{
+    "login" : {"CLASS_NAME" : "login"},
+    "username" : { "ID" : "txtAccount"},
+    "password" : { "ID" : "txtPwd"},
+    "remember_user" : {"CSS_SELECTOR" : ".checkbox > label"} 
+}
