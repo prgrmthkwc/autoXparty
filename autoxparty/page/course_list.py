@@ -84,7 +84,8 @@ class PageCourseList(Page):
                 self.course[PageCourseList.PROGRESS] = course_progress
                 self.course[PageCourseList.LI] = li
                 logging.info(" ==>> Get the course to learn:")
-                logging.info(self.course)
+                logging.info("type:%s, score:%s, progress:%.1f%%",
+                             course_type, course_score, course_progress)
                 return self.course
 
         return None

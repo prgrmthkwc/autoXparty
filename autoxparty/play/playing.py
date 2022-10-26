@@ -4,6 +4,7 @@
 from selenium.webdriver.common.by import By
 
 from .base import Play
+from autoxparty import helpers
 
 
 class Playing(Play):
@@ -42,9 +43,13 @@ class Playing(Play):
     def running(self):
         pass
 
+    def update_learning_progress(self):
+        helpers.update_progress(self.elapsed_secs / self.duration_secs)
+
     def start(self):
         self.prepare_playing()
         while not self.class_is_over():
             self.dismiss_msgbox_if_popup()
             self.answer_question_if_popup()
             self.running()  # time.sleep() in it
+            self.update_learning_progress()

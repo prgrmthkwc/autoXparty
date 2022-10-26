@@ -68,7 +68,7 @@ class PlayingMode1v(Playing):
             btn = self.page.wait_tick.until(EC.visibility_of_element_located(
                 self.page.get_locator(Ppm1v.CTRLBAR_PLAY_BTN_ID)))
         except TimeoutException as ex:
-            logging.info("failed to get it by ID: myplayer_display_button_play'")
+            logging.debug("failed to get it by ID: myplayer_display_button_play'")
         else:
             return btn
 
@@ -76,7 +76,7 @@ class PlayingMode1v(Playing):
             btn = self.page.wait_tick.until(EC.visibility_of_element_located(
                 self.page.get_locator(Ppm1v.CTRLBAR_PLAY_BTN_CSS)))
         except TimeoutException as ex:
-            logging.info("failed to get it by CSS_SELECTOR: .jwplay button'")
+            logging.debug("failed to get it by CSS_SELECTOR: .jwplay button'")
         else:
             return btn
 
@@ -103,7 +103,7 @@ class PlayingMode1v(Playing):
                 logging.info("mouse move_to_location(%d, %d)......", vx, vy)
                 btn = self.get_play_btn()
                 if btn is not None:
-                    logging.info("mouse move_to_location(%d, %d) worked!", vx, vy)
+                    logging.info("get location at (%d, %d)!!!", vx, vy)
                     self.mouse_offset_w = vx
                     self.mouse_offset_h = vy
                     ActionChains(self.webdriver).move_to_element(btn).perform()

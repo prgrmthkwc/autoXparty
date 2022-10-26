@@ -8,6 +8,7 @@ import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.common.exceptions import NoSuchWindowException
 from webdriver_manager.chrome import ChromeDriverManager
 
 from autoxparty import helpers
@@ -85,8 +86,12 @@ class AutoXparty(unittest.TestCase):
         return super().tearDown()
 
     def test_play(self):
-        play = HnPlaying(self.webdriver, self.username, self.password)
-        play.start()
+        try:
+            play = HnPlaying(self.webdriver, self.username, self.password)
+            play.start()
+        except NoSuchWindowException:
+            logging.warning("\n\nNo window found. Did you close the Browser?")
+            logging.info("The application quit now. You can relaunch it.")
 
 
 if __name__ == '__main__':
