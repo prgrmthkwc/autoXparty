@@ -26,7 +26,7 @@ def get_configs(cfg_file_name):
         logging.error("failed to load file:", cfg_file_name)
         return None
 
-    with open(cfg_file_name, 'r') as cfg:
+    with open(cfg_file_name, 'r', encoding='utf-8') as cfg:
         data = json.load(cfg)
         cfg.close()
         return data
