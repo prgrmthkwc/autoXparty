@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (C) 2022 编程不想｜prgrmthkwc
+
 from selenium.webdriver.common.by import By
 
 from .base import Play

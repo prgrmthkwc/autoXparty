@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import platform
 import unittest
 import logging
@@ -17,9 +20,9 @@ CFG_TARGET_SCORE = "score"
 
 DEFAULT_TARGET_SCORE = 52
 
-VERSION_AUTOXPARTY = "1.1"
-RELEASE_DATE = "2022/10/24"
-COPYRIGHT_INFO = "Copyright(c) 2022 编程不想(PTWC)"
+VERSION_AUTOXPARTY = "1.2"
+RELEASE_DATE = "2022/10/26"
+COPYRIGHT_INFO = "(C) 2022 编程不想｜prgrmthkwc"
 
 
 class AutoXparty(unittest.TestCase):
@@ -51,8 +54,8 @@ class AutoXparty(unittest.TestCase):
         chrome_opts.add_argument("--disable-gpu")
         chrome_opts.add_argument("--disable-extensions")
         # chrome_opts.add_argument("--headless")
-        chrome_opts.add_argument("--window-size=1920,1200")
-        # chrome_opts.add_argument("--window-size=1024,800")
+        # chrome_opts.add_argument("--window-size=1920,1200")
+        chrome_opts.add_argument("--window-size=1200,800")
         # chrome_opts.add_argument("--no-sandbox")
         # chrome_opts.add_argument("--remote-debugging-port=9222")
 

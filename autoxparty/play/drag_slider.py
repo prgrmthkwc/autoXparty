@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (C) 2022 编程不想｜prgrmthkwc
+
 from .base import Play
 from autoxparty.page.drag_slider import PageDragSlider
 

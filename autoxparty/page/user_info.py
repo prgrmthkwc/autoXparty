@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (C) 2022 编程不想｜prgrmthkwc
+
 import logging
 
 from .base import Page
