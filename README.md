@@ -23,7 +23,7 @@ Windows平台，建议下载官方离线安装包： [👉 Win64 bit](https://dl
 
 2. 去release页面下载打包好的Windows应用程序
 
-当前为 autoXparty-0.1。下载后，直接去直接运行即可。
+当前为 [👉 autoXparty-1.2](https://github.com/prgrmthkwc/autoXparty/releases/latest) 。下载后，直接运行即可。
 
 `特别说明：` 第一次运行程序时会**自动下载需要的最新Chrome驱动包**，程序启动会显得有点慢。
 
@@ -36,12 +36,11 @@ Windows平台，建议下载官方离线安装包： [👉 Win64 bit](https://dl
 
 官方下载地址： https://www.python.org/downloads （当前最新版本为：3.10.8）
 
-安装后确认pip是否需要更新，并且安装packaging包。
+安装后确认pip是否需要更新。
 
 
 ```bash
 $ python.exe -m pip install --upgrade pip
-$ pip install packaging
 ```
 
 2. 安装 `Selenium` （当前版本 4.5.0）
@@ -54,7 +53,7 @@ $ pip install selenium
 3. 安装Selenium辅助包 `webdriver-manager`
 
 ```bash
-$ pip install webdriver-manager
+$ pip install packaging webdriver-manager
 ```
 
 4. 下载当前程序包

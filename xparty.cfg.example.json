@@ -1,4 +1,6 @@
 {
     "username" : "your-account-username",
+    "password" : "put it here and own your risk",
+    "winsize" : "1600x900",
     "url": "https://www.website.com"
 }
