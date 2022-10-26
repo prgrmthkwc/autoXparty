@@ -14,6 +14,7 @@ from .playing_3bmode import PlayingMode3b
 
 
 class HnPlaying:
+    WAITING_SWITCH_TAB: int = 3
     TIMEOUT_CLASS_OVER: int = 5  # 5secs
     WAITING_BEFORE_APP_QUIT: int = 60  # 1 minute
 
@@ -33,6 +34,7 @@ class HnPlaying:
                 wb.close()
                 time.sleep(HnPlaying.TIMEOUT_CLASS_OVER)
         wb.switch_to.window(self.mainwin_handle)
+        time.sleep(HnPlaying.TIMEOUT_CLASS_OVER)
 
     def start(self):
         wb = self.webdriver
@@ -53,10 +55,12 @@ class HnPlaying:
                 return
 
             wb.switch_to.window(wb.window_handles[1])
+            time.sleep(HnPlaying.WAITING_SWITCH_TAB)
             course_detail = CourseDetail(wb)
             course_detail.start()
-            wb.switch_to.window(wb.window_handles[2])
 
+            wb.switch_to.window(wb.window_handles[2])
+            time.sleep(HnPlaying.WAITING_SWITCH_TAB)
             drag = DragSlider(wb)
             drag.start()
 
@@ -67,6 +71,7 @@ class HnPlaying:
                 play3b = PlayingMode3b(wb)
                 play3b.start()
                 wb.switch_to.default_content()
+                time.sleep(HnPlaying.TIMEOUT_CLASS_OVER)
             else:
                 logging.error("Get unknown course type: %s", course_list.get_current_course_type())
 
