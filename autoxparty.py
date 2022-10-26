@@ -17,8 +17,10 @@ CFG_USERNAME = 'username'
 CFG_PASSWORD = "password"
 CFG_GATE_URL = "url"
 CFG_TARGET_SCORE = "score"
+CFG_WINSIZE = "winsize"
 
 DEFAULT_TARGET_SCORE = 52
+DEFAULT_WINDOW_SIZE = "1400,900"
 
 VERSION_AUTOXPARTY = "1.2"
 RELEASE_DATE = "2022/10/26"
@@ -47,6 +49,19 @@ class AutoXparty(unittest.TestCase):
         if CFG_PASSWORD in d:
             self.password = d[CFG_PASSWORD]
 
+        winsize = DEFAULT_WINDOW_SIZE
+        if CFG_WINSIZE in d:
+            sz = d[CFG_WINSIZE]
+            if 'x' in sz:
+                winsize = sz.replace('x', ',')
+            elif 'X' in sz:
+                winsize = sz.replace('X', ',')
+            else:
+                if ',' in sz:
+                    winsize = sz
+                else:
+                    logging.warning("Bad window size specified in xparty.cfg.json")
+
         chrome_opts = Options()
         if platform.system() != 'Windows':
             chrome_opts.add_argument("--user-data-dir=" + self.username + "-data-dir")
@@ -55,7 +70,7 @@ class AutoXparty(unittest.TestCase):
         chrome_opts.add_argument("--disable-extensions")
         # chrome_opts.add_argument("--headless")
         # chrome_opts.add_argument("--window-size=1920,1200")
-        chrome_opts.add_argument("--window-size=1200,800")
+        chrome_opts.add_argument("--window-size=%s" % winsize)
         # chrome_opts.add_argument("--no-sandbox")
         # chrome_opts.add_argument("--remote-debugging-port=9222")
 
