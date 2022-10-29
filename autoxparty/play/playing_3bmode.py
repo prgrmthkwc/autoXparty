@@ -65,6 +65,8 @@ class PlayingMode3b(Playing):
 
         def duration_time_is_ready(driver):
             duration = self.extract_element_text(Ppm3b.SPAN_DURATION, driver)
+            if duration is None:
+                return False
             duration_secs = helpers.time2secs(duration)
             return duration_secs > 0
 
@@ -144,3 +146,23 @@ class PlayingMode3b(Playing):
     def running(self):
         self.update_video_time_values()
         time.sleep(Playing.TICKTOK)
+
+    def is_3bmode(self):
+        webdriver = self.webdriver
+        time.sleep(10)
+        loc = self.page.get_locator(Ppm3b.IFRAME_1)
+        try:
+            self.page.wait.until(EC.presence_of_element_located(loc))
+        except TimeoutException:
+            return False
+        else:
+            self.webdriver.switch_to.frame(0)
+
+            try:
+                loc = self.page.get_locator(Ppm3b.IFRAME_2)
+                self.page.wait.until(EC.presence_of_element_located(loc))
+                return True
+            except TimeoutException:
+                return False
+            finally:
+                webdriver.switch_to.default_content()

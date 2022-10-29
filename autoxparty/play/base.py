@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # (C) 2022 编程不想｜prgrmthkwc
-
+import logging
 
 
 class Play:
@@ -20,4 +20,9 @@ class Play:
     def extract_element_text(self, by_mark, parent=None):
         loc = self.page.get_locator(by_mark)
         p = parent if parent else self.webdriver
-        p.find_element(*loc).text.strip()
+        txt = p.find_element(*loc).text
+        if txt is None:
+            logging.warning("failed to get text of :")
+            logging.warning(loc)
+            return None
+        return txt.strip()
