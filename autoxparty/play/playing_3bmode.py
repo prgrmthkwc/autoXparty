@@ -14,7 +14,6 @@ from autoxparty.page.playing_3bmode import PagePlayingMode3b as Ppm3b
 
 
 class PlayingMode3b(Playing):
-
     MODE1_QUESTION = 1
     MODE2_JUST_WATCHING = 2
 

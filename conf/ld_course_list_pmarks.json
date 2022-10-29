@@ -1,0 +1,10 @@
+{
+    "must_learn" : {"PARTIAL_LINK_TEXT" : "必修课程"},
+    "tab_container" : { "CLASS_NAME" : "tab-content"},
+
+    "tab_spec_course" : {"XPATH" :  "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 2']"},
+    "course_list" : { "XPATH" : ".//div[@class='list ng-scope']"},
+
+    "progress" : { "XPATH" : ".//div[@class='progress']"},
+    "click" : {"PARTIAL_LINK_TEXT" : "点击进入"}
+}
