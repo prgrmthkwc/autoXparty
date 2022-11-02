@@ -18,7 +18,8 @@ from autoxparty.page.playing_1vmode import PagePlayingMode1v as Ppm1v
 
 class PlayingMode1v(Playing):
 
-    PAUSE_VIDEO_TRICK = 10  # 10 secs
+    PAUSE_VIDEO_TRICK = 5  # 5 secs
+    WAIT_VDIEO_PLAY = 20  # 20 secs
 
     def __init__(self, webdriver):
         super(PlayingMode1v, self).__init__(webdriver)
@@ -35,6 +36,9 @@ class PlayingMode1v(Playing):
             loc = self.page.get_locator(Ppm1v.SPAN_ELAPSED)
             elapsed = driver.find_element(*loc)
             if ':' not in elapsed.text:
+                self._move_mouse_to(self.mouse_offset_w + 50, self.mouse_offset_h)
+                time.sleep(0.5)
+                self._move_mouse_to(self.mouse_offset_w - 50, self.mouse_offset_h)
                 logging.warning("Failed to get elapse time: %s", elapsed.text)
                 return False
 
@@ -57,6 +61,8 @@ class PlayingMode1v(Playing):
         self.is_short_video = self.duration_secs <= Playing.SHORT_VIDEO
 
     def prepare_playing(self):
+        time.sleep(PlayingMode1v.WAIT_VDIEO_PLAY)
+
         # set elapsed_secs/duration_secs/is_short_video
         loc = self.page.get_locator(Ppm1v.CTRLBAR)
         self.playbar = self.page.wait.until(lambda d: d.find_element(*loc))
@@ -134,11 +140,14 @@ class PlayingMode1v(Playing):
         if self.is_short_video:
             tick = Playing.TICK
             if self.elapsed_secs / self.duration_secs > Playing.PERCENT4NORMAL:
-                # make it pause for a moment
-                logging.warning("!!!!! click the video to make it paused")
-                ActionChains(self.webdriver).click(self.video_area).perform()
-                time.sleep(PlayingMode1v.PAUSE_VIDEO_TRICK)
-                logging.warning("The trick DONE. Now resume it to playing")
-                ActionChains(self.webdriver).click(self.video_area).perform()
+                self.pause_video_amoment_for_user()
 
         time.sleep(tick)
+
+    def pause_video_amoment_for_user(self):
+        # make it pause for a moment
+        logging.warning("!!!!! click the video to make it paused")
+        ActionChains(self.webdriver).click(self.video_area).perform()
+        time.sleep(PlayingMode1v.PAUSE_VIDEO_TRICK)
+        logging.warning("The trick DONE. Now resume it to playing")
+        ActionChains(self.webdriver).click(self.video_area).perform()

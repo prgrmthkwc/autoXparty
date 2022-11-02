@@ -12,14 +12,13 @@ from selenium.common.exceptions import NoSuchWindowException
 from webdriver_manager.chrome import ChromeDriverManager
 
 from autoxparty import helpers
-from autoxparty.play.ld_playing import LdPlaying
+from autoxparty.play.hn_playing import HnPlaying
 
 CFG_USERNAME = 'username'
 CFG_PASSWORD = "password"
 CFG_GATE_URL = "url"
 CFG_TARGET_SCORE = "score"
 CFG_WINSIZE = "winsize"
-CFG_TRAINING_URL = "url-1"
 
 DEFAULT_TARGET_SCORE = 52
 DEFAULT_WINDOW_SIZE = "1400,900"
@@ -50,8 +49,6 @@ class AutoXparty(unittest.TestCase):
         self.password = ""
         if CFG_PASSWORD in d:
             self.password = d[CFG_PASSWORD]
-        if CFG_TRAINING_URL in d:
-            self.training_url = d[CFG_TRAINING_URL]
 
         winsize = DEFAULT_WINDOW_SIZE
         if CFG_WINSIZE in d:
@@ -90,7 +87,7 @@ class AutoXparty(unittest.TestCase):
 
     def test_play(self):
         try:
-            play = LdPlaying(self.webdriver, self.username, self.password, self.training_url)
+            play = HnPlaying(self.webdriver, self.username, self.password)
             play.start()
         except NoSuchWindowException:
             logging.warning("\n\nNo window found. Did you close the Browser?")

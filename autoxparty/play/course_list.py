@@ -34,7 +34,14 @@ class CourseList(Play):
             self.page.learn_course()
             return True
 
+        if self.to_learn_spec_course:  # get to the next page if it has
+            if self.get_to_next_page():
+                return self.start()
+
         return False
+
+    def get_to_next_page(self):
+        return self.page.get_to_next_page()
 
     def get_current_course_type(self):
         return self.course.get(PageCourseList.TYPE)

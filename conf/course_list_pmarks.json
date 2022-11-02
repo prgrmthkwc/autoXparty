@@ -9,5 +9,7 @@
     "tab_learning_panel" : {"XPATH" :  "//div[@class='tab-panel perlist' and @ng-show='vm.activeTab == 1']"},
     "tab_learning_ul" : {"XPATH" :  "//div[2]/div/ul"},
 
+    "li_next_page" : {"XPATH" : "//ul[@class='pagination']/li[last()]"},
+
     "li_start_link_text" : {"PARTIAL_LINK_TEXT" : "开始学习"}
 }

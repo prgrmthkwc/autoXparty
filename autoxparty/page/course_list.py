@@ -23,6 +23,8 @@ class PageCourseList(Page):
     TAB_LEARNING_PANEL = "tab_learning_panel"
     TAB_LEARNING_UL = "tab_learning_ul"
 
+    LI_NEXT_PAGE = "li_next_page"
+
     LI_START_LINK_TEXT = "li_start_link_text"
 
     LI = 0
@@ -98,3 +100,12 @@ class PageCourseList(Page):
         loc = self.get_locator(PageCourseList.LI_START_LINK_TEXT)
         li.find_element(*loc).click()
 
+    def get_to_next_page(self):
+        loc = self.get_locator(PageCourseList.LI_NEXT_PAGE)
+        li = self.webdriver.find_element(*loc)
+        if "disabled" == li.get_attribute("class"):
+            return False
+        li.click()
+        logging.info("Get to the next page ...")
+        time.sleep(Page.TIMEOUT_LOAD_LIST)
+        return True
