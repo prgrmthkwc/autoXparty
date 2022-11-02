@@ -105,7 +105,8 @@ class PageCourseList(Page):
         li = self.webdriver.find_element(*loc)
         if "disabled" == li.get_attribute("class"):
             return False
-        li.click()
+        span = li.find_element(By.TAG_NAME, 'span')
+        self.webdriver.execute_script("return arguments[0].click();", span)
         logging.info("Get to the next page ...")
         time.sleep(Page.TIMEOUT_LOAD_LIST)
         return True
